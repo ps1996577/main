@@ -1,23 +1,67 @@
 @foreach($nodes as $node)
     @php
         $isActive = (int) ($activeFolderId ?? 0) === $node->id;
-        $query = request()->except('page');
-        $query['folder_id'] = $node->id;
-        $url = route('test-cases.index', $query);
+        $query = array_merge($folderFilterQuery ?? [], ['folder_id' => $node->id]);
+        $casePreview = $node->testCases->take(6);
     @endphp
-    <div>
-        <a href="{{ $url }}"
-           class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm {{ $isActive ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-50' }}">
-            <span class="truncate">{{ $node->breadcrumb }}</span>
-            <span class="text-xs font-semibold text-gray-500">{{ $node->test_cases_count }}</span>
-        </a>
-        @if($node->children->isNotEmpty())
-            <div class="ms-3 mt-2 border-l border-dashed border-gray-200 ps-3 space-y-2">
-                @include('test-cases.partials.folder-tree', [
-                    'nodes' => $node->children,
-                    'activeFolderId' => $activeFolderId,
-                ])
+    <div x-data="{ open: {{ $isActive ? 'true' : 'false' }} }" class="rounded-lg border border-gray-100 bg-gray-50/60">
+        <button type="button" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left" @click="open = !open">
+            <div>
+                <p class="text-[11px] uppercase tracking-widest text-gray-400">{{ $node->breadcrumb }}</p>
+                <p class="text-sm font-semibold text-gray-800">{{ $node->description ?? 'Bez opisu' }}</p>
             </div>
-        @endif
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-gray-500">{{ $node->test_cases_count }}</span>
+                <svg x-cloak x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <svg x-cloak x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </button>
+        <div x-show="open" x-transition.opacity class="px-3 pb-3 space-y-3">
+            <div class="flex flex-wrap gap-2 text-[11px] font-semibold">
+                <a href="{{ route('test-cases.index', $query) }}" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+                    Filtruj folder
+                </a>
+                <a href="{{ route('folders.edit', $node) }}" class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-gray-600 hover:text-emerald-600">
+                    Edytuj folder
+                </a>
+            </div>
+
+            @if($casePreview->isNotEmpty())
+                <ul class="space-y-2 text-xs text-gray-600">
+                    @foreach($casePreview as $case)
+                        <li class="flex items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <a href="{{ route('test-cases.show', $case) }}" class="font-semibold text-gray-800 hover:text-emerald-700 truncate">
+                                    {{ $case->case_key }} · {{ $case->title }}
+                                </a>
+                                <p class="text-[11px] text-gray-500">
+                                    {{ \Illuminate\Support\Str::limit($case->expected_result ?: $case->steps ?: 'Brak opisu', 60) }}
+                                </p>
+                            </div>
+                            <x-status-badge :status="$case->status" class="px-2 py-0.5 text-[10px]" />
+                        </li>
+                    @endforeach
+                </ul>
+                @if($node->testCases->count() > $casePreview->count())
+                    <p class="text-[11px] text-gray-500">+ {{ $node->testCases->count() - $casePreview->count() }} kolejnych...</p>
+                @endif
+            @else
+                <p class="text-[11px] text-gray-400">Brak przypadków w tym folderze.</p>
+            @endif
+
+            @if($node->children->isNotEmpty())
+                <div class="ms-3 border-l border-dashed border-gray-200 ps-3 space-y-2">
+                    @include('test-cases.partials.folder-tree', [
+                        'nodes' => $node->children,
+                        'activeFolderId' => $activeFolderId,
+                        'folderFilterQuery' => $folderFilterQuery,
+                    ])
+                </div>
+            @endif
+        </div>
     </div>
 @endforeach

@@ -78,7 +78,12 @@ class TestCaseController extends Controller
 
         $folders = Folder::orderBy('name')->get();
         $folderTree = Folder::roots()
-            ->with('children')
+            ->with([
+                'children',
+                'testCases' => static fn ($query) => $query
+                    ->select('id', 'folder_id', 'case_key', 'title', 'status', 'updated_at')
+                    ->orderBy('case_key'),
+            ])
             ->withCount('testCases')
             ->orderBy('position')
             ->orderBy('name')

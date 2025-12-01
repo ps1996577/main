@@ -33,7 +33,7 @@ class Folder extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')
-            ->with('children')
+            ->with(['children', 'testCases'])
             ->withCount('testCases')
             ->orderBy('position')
             ->orderBy('name');
