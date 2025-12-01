@@ -24,14 +24,19 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Administrator',
                 'password' => 'Password123!',
                 'role' => 'admin',
+                'email_verified_at' => now(),
             ]
         );
 
-        $tester = User::factory()->create([
-            'name' => 'QA Tester',
-            'email' => 'tester@example.com',
-            'role' => 'tester',
-        ]);
+        $tester = User::updateOrCreate(
+            ['email' => 'tester@example.com'],
+            [
+                'name' => 'QA Tester',
+                'password' => 'Password123!',
+                'role' => 'tester',
+                'email_verified_at' => now(),
+            ]
+        );
 
         $smokeFolder = Folder::create([
             'name' => 'Smoke Tests',
