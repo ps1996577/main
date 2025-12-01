@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div class="space-y-1">
-                <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Symfonia · TestRail Edition</p>
-                <h2 class="font-semibold text-2xl text-slate-900 leading-tight flex items-center gap-3">
-                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                        <i class="bi bi-kanban"></i>
-                    </span>
-                    {{ __('Przypadki testowe') }}
-                </h2>
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-3">
+                <x-symfonia-logo class="hidden sm:flex" />
+                <div>
+                    <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Symfonia · Quality Suite</p>
+                    <h2 class="font-semibold text-2xl text-slate-900 leading-tight">
+                        {{ __('Przypadki testowe') }}
+                    </h2>
+                </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <a href="{{ route('import-export.index') }}" class="btn-emerald bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50">
@@ -16,7 +16,7 @@
                     Import / Export
                 </a>
                 <a href="{{ route('test-cases.create') }}" class="btn-emerald">
-                    <i class="bi bi-plus-lg"></i>
+                    <i class="bi bi-plus-circle"></i>
                     Dodaj przypadek
                 </a>
             </div>
@@ -34,41 +34,60 @@
         $folderFilterQuery = request()->except(['page', 'folder_id']);
     @endphp
 
-    <div class="py-8 bg-slate-50/60">
+    <div class="py-8 bg-slate-50/70">
         <div class="mx-auto w-full max-w-7xl px-4 lg:px-6 space-y-6">
-            <section class="glass-card px-6 py-5 grid gap-6 lg:grid-cols-[1fr,auto]">
-                <div>
-                    <p class="text-sm text-slate-500">Plan testów · {{ $metrics['total'] }} przypadków</p>
-                    <div class="mt-3 flex flex-wrap gap-3">
-                        <span class="stat-pill">
-                            <i class="bi bi-check-circle"></i>
-                            {{ $metrics['ready'] }} gotowych
-                        </span>
-                        <span class="stat-pill bg-amber-50 text-amber-700">
-                            <i class="bi bi-brush"></i>
-                            {{ $metrics['draft'] }} szkiców
-                        </span>
-                        <span class="stat-pill bg-slate-100 text-slate-600">
-                            <i class="bi bi-archive"></i>
-                            {{ $metrics['deprecated'] }} wycofanych
-                        </span>
+            <section class="glass-card border border-emerald-50 px-6 py-5">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">{{ $metrics['total'] }} przypadków w aktualnym zestawie</p>
+                        <div class="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+                                <i class="bi bi-check2-circle"></i>
+                                {{ $metrics['ready'] }} gotowych
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
+                                <i class="bi bi-pencil"></i>
+                                {{ $metrics['draft'] }} szkiców
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                                <i class="bi bi-archive"></i>
+                                {{ $metrics['deprecated'] }} wycofanych
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 justify-end">
-                    <a href="{{ route('folders.index') }}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
-                        <i class="bi bi-folder2-open"></i>
-                        Zarządzaj folderami
-                    </a>
-                    <a href="{{ route('import-export.export') }}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
-                        <i class="bi bi-download"></i>
-                        Eksport CSV
-                    </a>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <a href="{{ route('folders.index') }}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            <i class="bi bi-folder2-open"></i>
+                            Zarządzaj folderami
+                        </a>
+                        <a href="{{ route('import-export.export') }}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+                            <i class="bi bi-download"></i>
+                            Eksport CSV
+                        </a>
+                    </div>
                 </div>
             </section>
 
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
                 <div class="space-y-6">
-                    <section class="glass-card">
+                    <section class="glass-card border border-white/80">
+                        <div class="border-b border-slate-100 px-6 py-4 flex flex-wrap items-center gap-3 justify-between">
+                            <div class="space-y-1">
+                                <p class="text-sm font-semibold text-slate-800">Akcje testowe</p>
+                                <p class="text-xs text-slate-500">Szybkie zarządzanie przypadkami</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                                <a href="{{ route('test-cases.create') }}" class="btn-emerald">
+                                    <i class="bi bi-plus-lg"></i> Nowy przypadek
+                                </a>
+                                <button type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-slate-600 hover:bg-white">
+                                    <i class="bi bi-layers"></i> Klonuj
+                                </button>
+                                <button type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-slate-600 hover:bg-white">
+                                    <i class="bi bi-play-circle"></i> Uruchom serię
+                                </button>
+                            </div>
+                        </div>
                         <form method="GET" class="p-6 space-y-4">
                             <div class="grid gap-4 lg:grid-cols-12">
                                 <div class="lg:col-span-5">
@@ -129,7 +148,7 @@
                         </form>
                     </section>
 
-                    <section class="glass-card">
+                    <section class="glass-card border border-white/80">
                         <div class="px-6 py-4 border-b border-slate-100 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                             <div>
                                 <p class="text-sm font-semibold text-slate-800">Lista przypadków</p>
@@ -139,18 +158,16 @@
                             </div>
                             <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
                                 <button type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-slate-600 hover:bg-white">
-                                    <i class="bi bi-copy"></i>
-                                    Duplikuj
+                                    <i class="bi bi-copy"></i> Duplikuj
                                 </button>
                                 <button type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-slate-600 hover:bg-white">
-                                    <i class="bi bi-trash"></i>
-                                    Usuń zaznaczone
+                                    <i class="bi bi-trash"></i> Usuń zaznaczone
                                 </button>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
-                                <thead class="bg-white/70">
+                                <thead class="bg-white/80">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-widest">ID</th>
                                         <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-widest">Tytuł</th>
@@ -214,17 +231,13 @@
                 </div>
 
                 <aside class="space-y-4 lg:sticky lg:top-24">
-                    <section class="glass-card p-5 space-y-4" x-data="{}">
+                    <section class="glass-card border border-white/80 p-5 space-y-4" x-data="{}">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Mapa testów</p>
                                 <h3 class="text-lg font-semibold text-slate-900">Foldery</h3>
                             </div>
                             <span class="text-xs font-semibold text-slate-500">{{ $metrics['total'] }} TC</span>
-                        </div>
-                        <div class="flex items-center justify-between rounded-xl border border-emerald-50 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-700">
-                            <span class="font-semibold">Widok kompaktowy</span>
-                            <span class="text-emerald-500"><i class="bi bi-arrows-expand"></i></span>
                         </div>
                         <div class="space-y-3 text-sm text-slate-600">
                             <a href="{{ route('test-cases.index', $folderFilterQuery) }}"
@@ -233,7 +246,7 @@
                                 Wszystkie foldery
                             </a>
                             @if($folderTree->isNotEmpty())
-                                <div class="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scroll">
+                                <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1 custom-scroll">
                                     @include('test-cases.partials.folder-tree', [
                                         'nodes' => $folderTree,
                                         'activeFolderId' => request('folder_id'),
