@@ -16,10 +16,10 @@ class TestCaseController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = TestCase::with('folder');
+        $baseQuery = TestCase::query();
 
         if ($search = $request->string('search')->toString()) {
-            $query->where(function (Builder $builder) use ($search) {
+            $baseQuery->where(function (Builder $builder) use ($search) {
                 $builder->where('title', 'like', "%{$search}%")
                     ->orWhere('case_key', 'like', "%{$search}%")
                     ->orWhere('expected_result', 'like', "%{$search}%");
@@ -27,25 +27,73 @@ class TestCaseController extends Controller
         }
 
         if ($folderId = $request->integer('folder_id')) {
-            $query->where('folder_id', $folderId);
+            $baseQuery->where('folder_id', $folderId);
         }
 
         if ($status = $request->string('status')->toString()) {
-            $query->where('status', $status);
+            $baseQuery->where('status', $status);
         }
 
-        $testCases = $query->orderByDesc('created_at')
-            ->paginate(12)
+        $sortConfig = [
+            'recent' => ['label' => 'Ostatnie aktualizacje', 'column' => 'updated_at', 'direction' => 'desc'],
+            'oldest' => ['label' => 'Najstarsze aktualizacje', 'column' => 'updated_at', 'direction' => 'asc'],
+            'title' => ['label' => 'Nazwa A-Z', 'column' => 'title', 'direction' => 'asc'],
+            'key' => ['label' => 'ID rosnąco', 'column' => 'case_key', 'direction' => 'asc'],
+        ];
+
+        $sort = $request->string('sort')->toString();
+        if (! array_key_exists($sort, $sortConfig)) {
+            $sort = 'recent';
+        }
+
+        $sortOptions = collect($sortConfig)
+            ->mapWithKeys(static fn (array $config, string $key) => [$key => $config['label']])
+            ->all();
+
+        $testCases = (clone $baseQuery)
+            ->with('folder')
+            ->orderBy($sortConfig[$sort]['column'], $sortConfig[$sort]['direction'])
+            ->orderBy('id')
+            ->paginate(15)
             ->withQueryString();
 
-        $folders = Folder::orderBy('name')->get();
+        $statusBreakdown = (clone $baseQuery)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->all();
+
         $statuses = [
             'draft' => 'Szkic',
             'ready' => 'Gotowy',
             'deprecated' => 'Wycofany',
         ];
 
-        return view('test-cases.index', compact('testCases', 'folders', 'statuses'));
+        $metrics = [
+            'total' => (int) $testCases->total(),
+            'ready' => (int) ($statusBreakdown['ready'] ?? 0),
+            'draft' => (int) ($statusBreakdown['draft'] ?? 0),
+            'deprecated' => (int) ($statusBreakdown['deprecated'] ?? 0),
+        ];
+
+        $folders = Folder::orderBy('name')->get();
+        $folderTree = Folder::roots()
+            ->with('children')
+            ->withCount('testCases')
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+
+        return view('test-cases.index', [
+            'testCases' => $testCases,
+            'folders' => $folders,
+            'folderTree' => $folderTree,
+            'statuses' => $statuses,
+            'statusBreakdown' => $statusBreakdown,
+            'metrics' => $metrics,
+            'sort' => $sort,
+            'sortOptions' => $sortOptions,
+        ]);
     }
 
     public function create(Request $request): View
