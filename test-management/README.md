@@ -57,3 +57,51 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Docker Compose setup
+
+This repository contains a ready-to-use Docker environment so you can run the Test Management app without installing PHP, Composer, or Node locally.
+
+### Prerequisites
+
+- Docker Engine 24+ and Docker Compose Plugin.
+
+### First run
+
+1. From the `test-management` directory, build and start the stack:
+   ```bash
+   docker compose up --build
+   ```
+2. The entrypoint will automatically:
+   - install Composer dependencies into a named volume,
+   - install Node dependencies and build the Vite assets once,
+   - create `.env` from `.env.example` (if missing) and generate `APP_KEY`,
+   - provision a `database/database.sqlite` file and run migrations (set `RUN_MIGRATIONS=false` to skip),
+   - expose the app at [http://localhost:8000](http://localhost:8000) (override with `APP_PORT=...`).
+
+### Day-to-day commands
+
+- Run any Artisan command:
+  ```bash
+  docker compose exec app php artisan migrate
+  ```
+- Execute the test suite:
+  ```bash
+  docker compose exec app php artisan test
+  ```
+- Rebuild front-end assets (after changing files under `resources/`):
+  ```bash
+  docker compose exec app npm run build
+  ```
+- Start Vite dev server with hot reload:
+  ```bash
+  docker compose exec app npm run dev -- --host
+  ```
+
+### Configuration knobs
+
+- `APP_PORT` &mdash; host port exposed by `php artisan serve` (defaults to `8000`).
+- `RUN_MIGRATIONS` &mdash; set to `false` to skip automatic `php artisan migrate`.
+- `SEED_DATABASE` &mdash; set to `true` to run `php artisan db:seed` on startup.
+
+The stack mounts your working tree into the container for live editing, while `vendor`, `node_modules`, and `storage` are persisted in dedicated Docker volumes. To start from a clean slate, run `docker compose down -v`.

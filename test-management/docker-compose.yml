@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      APP_ENV: "${APP_ENV:-local}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL:-http://localhost:8000}"
+      RUN_MIGRATIONS: "${RUN_MIGRATIONS:-true}"
+      SEED_DATABASE: "${SEED_DATABASE:-false}"
+      APP_PORT: "${APP_PORT:-8000}"
+    volumes:
+      - ./:/var/www/html
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
+      - storage:/var/www/html/storage
+volumes:
+  vendor:
+  node_modules:
+  storage:
