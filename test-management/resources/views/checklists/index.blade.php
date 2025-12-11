@@ -94,8 +94,8 @@
                         <section class="bg-white shadow rounded-2xl border border-gray-100 p-6 sm:p-8 space-y-6">
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div class="w-full">
-                                    <p class="text-xs font-semibold uppercase text-gray-500 tracking-wider">
-                                        Tablica {{ tableIndex + 1 }}
+                                    <p class="text-xs font-semibold uppercase text-gray-500 tracking-wider"
+                                       x-text="`Tablica ${tableIndex + 1}`">
                                     </p>
                                     <input type="text"
                                            class="mt-2 w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 text-lg font-semibold text-gray-900"
