@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('folders.index')" :active="request()->routeIs('folders.*')">
                         {{ __('Foldery') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('checklists.index')" :active="request()->routeIs('checklists.*')">
+                        {{ __('Checklisty') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('import-export.index')" :active="request()->routeIs('import-export.*')">
                         {{ __('Import / Eksport') }}
                     </x-nav-link>
@@ -92,6 +95,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('folders.index')" :active="request()->routeIs('folders.*')">
                 {{ __('Foldery') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('checklists.index')" :active="request()->routeIs('checklists.*')">
+                {{ __('Checklisty') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('import-export.index')" :active="request()->routeIs('import-export.*')">
                 {{ __('Import / Eksport') }}

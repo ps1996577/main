@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('test-cases', TestCaseController::class);
     Route::resource('folders', FolderController::class);
+    Route::view('checklists', 'checklists.index')->name('checklists.index');
 
     Route::get('import-export', [ImportExportController::class, 'index'])->name('import-export.index');
     Route::post('import-export/import', [ImportExportController::class, 'import'])->name('import-export.import');
