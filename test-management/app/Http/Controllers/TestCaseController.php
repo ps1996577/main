@@ -16,7 +16,13 @@ class TestCaseController extends Controller
 {
     public function index(Request $request): View
     {
+        /** @var User $user */
+        $user = $request->user();
+
         $query = TestCase::with('folder');
+        if (! $user->isAdmin()) {
+            $query->where('created_by', $user->id);
+        }
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function (Builder $builder) use ($search) {
@@ -38,7 +44,12 @@ class TestCaseController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $folders = Folder::orderBy('name')->get();
+        $foldersQuery = Folder::orderBy('name');
+        if (! $user->isAdmin()) {
+            $foldersQuery->where('created_by', $user->id);
+        }
+        $folders = $foldersQuery->get();
+
         $statuses = [
             'draft' => 'Szkic',
             'ready' => 'Gotowy',
@@ -50,7 +61,15 @@ class TestCaseController extends Controller
 
     public function create(Request $request): View
     {
-        $folders = Folder::orderBy('name')->get();
+        /** @var User $user */
+        $user = $request->user();
+
+        $foldersQuery = Folder::orderBy('name');
+        if (! $user->isAdmin()) {
+            $foldersQuery->where('created_by', $user->id);
+        }
+        $folders = $foldersQuery->get();
+
         $customFields = CustomField::active()->get();
         $testCase = new TestCase([
             'folder_id' => $request->integer('folder_id'),
@@ -83,6 +102,8 @@ class TestCaseController extends Controller
 
     public function show(TestCase $testCase): View
     {
+        $this->authorizeTestCase($testCase);
+
         $testCase->load(['folder', 'creator', 'updater', 'customFieldValues.field']);
         $customFields = CustomField::orderBy('position')->get();
 
@@ -94,8 +115,16 @@ class TestCaseController extends Controller
 
     public function edit(TestCase $testCase): View
     {
+        $this->authorizeTestCase($testCase);
+
         $testCase->load('customFieldValues');
-        $folders = Folder::orderBy('name')->get();
+        $user = auth()->user();
+        $foldersQuery = Folder::orderBy('name');
+        if ($user && method_exists($user, 'isAdmin') && ! $user->isAdmin()) {
+            $foldersQuery->where('created_by', $user->id);
+        }
+        $folders = $foldersQuery->get();
+
         $customFields = CustomField::orderBy('position')->get();
 
         return view('test-cases.edit', compact('testCase', 'folders', 'customFields'));
@@ -103,6 +132,8 @@ class TestCaseController extends Controller
 
     public function update(TestCaseRequest $request, TestCase $testCase): RedirectResponse
     {
+        $this->authorizeTestCase($testCase);
+
         $payload = collect($request->validated());
         $customFields = $payload->pull('custom_fields', []);
 
@@ -122,11 +153,30 @@ class TestCaseController extends Controller
 
     public function destroy(TestCase $testCase): RedirectResponse
     {
+        $this->authorizeTestCase($testCase);
+
         $testCase->delete();
 
         return redirect()
             ->route('test-cases.index')
             ->with('status', 'Przypadek testowy został usunięty.');
+    }
+
+    protected function authorizeTestCase(TestCase $testCase): void
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+        if (! $user) {
+            abort(401);
+        }
+
+        if ($user->isAdmin()) {
+            return;
+        }
+
+        if ((int) $testCase->created_by !== (int) $user->id) {
+            abort(403);
+        }
     }
 
     protected function syncCustomFields(TestCase $testCase, array $values): void

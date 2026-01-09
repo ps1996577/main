@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FolderRequest extends FormRequest
 {
@@ -24,7 +25,10 @@ class FolderRequest extends FormRequest
         $folder = $this->route('folder');
         $folderId = is_object($folder) ? $folder->getKey() : $folder;
 
-        $parentRules = ['nullable', 'integer', 'exists:folders,id'];
+        $parentRules = ['nullable', 'integer'];
+        $parentRules[] = $this->user()?->isAdmin()
+            ? Rule::exists('folders', 'id')
+            : Rule::exists('folders', 'id')->where('created_by', $this->user()?->id);
         if ($folderId) {
             $parentRules[] = 'not_in:'.$folderId;
         }

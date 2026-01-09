@@ -65,10 +65,13 @@ class TestCasesImport implements ToCollection, WithHeadingRow
             ];
 
             if ($caseKey) {
-                $testCase = TestCase::updateOrCreate(
-                    ['case_key' => $caseKey],
-                    $attributes + ['created_by' => $this->user->id]
-                );
+                $identity = $this->user->isAdmin()
+                    ? ['case_key' => $caseKey]
+                    : ['case_key' => $caseKey, 'created_by' => $this->user->id];
+
+                $testCase = TestCase::updateOrCreate($identity, $attributes + [
+                    'created_by' => $this->user->id,
+                ]);
             } else {
                 $testCase = TestCase::create($attributes + [
                     'created_by' => $this->user->id,
@@ -93,15 +96,19 @@ class TestCasesImport implements ToCollection, WithHeadingRow
         $parentId = null;
 
         foreach ($segments as $segment) {
-            $folder = Folder::firstOrCreate(
-                [
-                    'name' => $segment,
-                    'parent_id' => $parentId,
-                ],
-                [
-                    'created_by' => $this->user->id,
-                ]
-            );
+            $lookup = [
+                'name' => $segment,
+                'parent_id' => $parentId,
+            ];
+
+            // SECURITY: isolate folder trees per user unless admin.
+            if (! $this->user->isAdmin()) {
+                $lookup['created_by'] = $this->user->id;
+            }
+
+            $folder = Folder::firstOrCreate($lookup, [
+                'created_by' => $this->user->id,
+            ]);
 
             $parentId = $folder->id;
         }

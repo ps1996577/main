@@ -47,6 +47,10 @@
                             Każda zakładka przechowuje swoje własne tabele i układ – zmiany są zapisywane lokalnie,
                             więc możesz śmiało wrócić do pracy później.
                         </p>
+                        <p class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <strong>Uwaga:</strong> dane checklist są przechowywane w <code>localStorage</code> tej przeglądarki.
+                            Nie wpisuj tu haseł, tokenów ani innych sekretów, szczególnie na współdzielonych komputerach/profilach.
+                        </p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <button type="button"

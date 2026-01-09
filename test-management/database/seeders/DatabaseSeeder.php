@@ -8,6 +8,7 @@ use App\Models\TestCase;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,18 +19,45 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // SECURITY: Never seed predictable admin credentials.
+        // If you want to create a bootstrap admin user, provide explicit env vars:
+        // - SEED_ADMIN_EMAIL
+        // - SEED_ADMIN_PASSWORD
+        // - (optional) SEED_ADMIN_NAME
+        $seedAdminEmail = env('SEED_ADMIN_EMAIL');
+        $seedAdminPassword = env('SEED_ADMIN_PASSWORD');
+        $seedAdminName = env('SEED_ADMIN_NAME', 'Administrator');
+
+        if (filled($seedAdminEmail) && filled($seedAdminPassword)) {
+            User::updateOrCreate(
+                ['email' => $seedAdminEmail],
+                [
+                    'name' => $seedAdminName,
+                    'password' => $seedAdminPassword,
+                    'role' => 'admin',
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
+
+        // Sample/demo data is only seeded in local/testing environments.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
+
         $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'admin@local.test'],
             [
-                'name' => 'Administrator',
-                'password' => 'Password123!',
+                'name' => 'Administrator (Local)',
+                'password' => Str::password(24),
                 'role' => 'admin',
+                'email_verified_at' => now(),
             ]
         );
 
-        $tester = User::factory()->create([
+        User::factory()->create([
             'name' => 'QA Tester',
-            'email' => 'tester@example.com',
+            'email' => 'tester@local.test',
             'role' => 'tester',
         ]);
 

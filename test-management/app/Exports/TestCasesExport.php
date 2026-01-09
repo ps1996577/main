@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\CustomField;
 use App\Models\TestCase;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -11,6 +12,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class TestCasesExport implements FromCollection, WithHeadings, ShouldAutoSize
 {
+    protected User $user;
+
     protected ?int $folderId;
 
     protected Collection $customFields;
@@ -27,8 +30,9 @@ class TestCasesExport implements FromCollection, WithHeadings, ShouldAutoSize
         'Uwagi dodatkowe',
     ];
 
-    public function __construct(?int $folderId = null)
+    public function __construct(User $user, ?int $folderId = null)
     {
+        $this->user = $user;
         $this->folderId = $folderId;
         $this->customFields = CustomField::orderBy('position')->get();
     }
@@ -36,6 +40,10 @@ class TestCasesExport implements FromCollection, WithHeadings, ShouldAutoSize
     public function collection(): Collection
     {
         $query = TestCase::with(['folder', 'customFieldValues']);
+
+        if (! $this->user->isAdmin()) {
+            $query->where('created_by', $this->user->id);
+        }
 
         if ($this->folderId) {
             $query->where('folder_id', $this->folderId);
@@ -45,23 +53,44 @@ class TestCasesExport implements FromCollection, WithHeadings, ShouldAutoSize
             ->get()
             ->map(function (TestCase $testCase) {
                 $row = [
-                    $testCase->case_key,
-                    $testCase->title,
-                    $testCase->folder?->breadcrumb ?? '',
-                    $testCase->status,
-                    $testCase->preconditions,
-                    $testCase->steps,
-                    $testCase->expected_result,
-                    $testCase->acceptance_criteria,
-                    $testCase->additional_notes,
+                    $this->sanitizeSpreadsheetValue($testCase->case_key),
+                    $this->sanitizeSpreadsheetValue($testCase->title),
+                    $this->sanitizeSpreadsheetValue($testCase->folder?->breadcrumb ?? ''),
+                    $this->sanitizeSpreadsheetValue($testCase->status),
+                    $this->sanitizeSpreadsheetValue($testCase->preconditions),
+                    $this->sanitizeSpreadsheetValue($testCase->steps),
+                    $this->sanitizeSpreadsheetValue($testCase->expected_result),
+                    $this->sanitizeSpreadsheetValue($testCase->acceptance_criteria),
+                    $this->sanitizeSpreadsheetValue($testCase->additional_notes),
                 ];
 
                 foreach ($this->customFields as $field) {
-                    $row[] = $testCase->getCustomFieldValue($field->id);
+                    $row[] = $this->sanitizeSpreadsheetValue($testCase->getCustomFieldValue($field->id));
                 }
 
                 return $row;
             });
+    }
+
+    protected function sanitizeSpreadsheetValue(mixed $value): mixed
+    {
+        // Mitigate CSV/Excel formula injection. Treat user-provided strings starting
+        // with special characters as literal strings by prefixing with a single quote.
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        $trimmed = ltrim($value);
+        if ($trimmed === '') {
+            return $value;
+        }
+
+        $first = $trimmed[0];
+        if (in_array($first, ['=', '+', '-', '@'], true)) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 
     public function headings(): array

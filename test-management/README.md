@@ -79,6 +79,9 @@ This repository contains a ready-to-use Docker environment so you can run the Te
    - provision a `database/database.sqlite` file and run migrations (set `RUN_MIGRATIONS=false` to skip),
    - expose the app at [http://localhost:8000](http://localhost:8000) (override with `APP_PORT=...`).
 
+> [!NOTE]
+> For safety, `docker-compose.yml` binds the published port to `127.0.0.1` by default, so the dev server is not exposed publicly.
+
 ### Day-to-day commands
 
 - Run any Artisan command:

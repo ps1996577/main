@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TestCaseImportRequest extends FormRequest
 {
@@ -21,9 +22,13 @@ class TestCaseImportRequest extends FormRequest
      */
     public function rules(): array
     {
+        $folderExistsRule = $this->user()?->isAdmin()
+            ? Rule::exists('folders', 'id')
+            : Rule::exists('folders', 'id')->where('created_by', $this->user()?->id);
+
         return [
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
+            'folder_id' => ['nullable', $folderExistsRule],
         ];
     }
 }

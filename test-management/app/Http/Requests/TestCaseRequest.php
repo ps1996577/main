@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TestCaseRequest extends FormRequest
 {
@@ -24,10 +25,14 @@ class TestCaseRequest extends FormRequest
         $testCase = $this->route('test_case') ?? $this->route('testCase');
         $testCaseId = is_object($testCase) ? $testCase->getKey() : $testCase;
 
+        $folderExistsRule = $this->user()?->isAdmin()
+            ? Rule::exists('folders', 'id')
+            : Rule::exists('folders', 'id')->where('created_by', $this->user()?->id);
+
         return [
             'case_key' => ['nullable', 'string', 'max:50', 'unique:test_cases,case_key,' . $testCaseId],
             'title' => ['required', 'string', 'max:255'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
+            'folder_id' => ['nullable', $folderExistsRule],
             'preconditions' => ['nullable', 'string'],
             'steps' => ['required', 'string'],
             'expected_result' => ['required', 'string'],

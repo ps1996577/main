@@ -6,6 +6,7 @@ use App\Exports\TestCasesExport;
 use App\Http\Requests\TestCaseImportRequest;
 use App\Imports\TestCasesImport;
 use App\Models\Folder;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,15 +17,34 @@ class ImportExportController extends Controller
 {
     public function index(): View
     {
-        $folders = Folder::with('parent')->orderBy('name')->get();
+        /** @var User $user */
+        $user = auth()->user();
+
+        $folders = Folder::with('parent')
+            ->when(! $user->isAdmin(), fn ($query) => $query->where('created_by', $user->id))
+            ->orderBy('name')
+            ->get();
 
         return view('import-export.index', compact('folders'));
     }
 
     public function export(Request $request)
     {
+        /** @var User $user */
+        $user = $request->user();
+
         $format = strtolower($request->input('format', 'xlsx'));
         $folderId = $request->integer('folder_id') ?: null;
+
+        // SECURITY: prevent exporting other users' data by restricting folder selection.
+        if ($folderId && ! $user->isAdmin()) {
+            $ownsFolder = Folder::where('id', $folderId)
+                ->where('created_by', $user->id)
+                ->exists();
+            if (! $ownsFolder) {
+                abort(403);
+            }
+        }
 
         $filename = sprintf(
             'test-cases-%s.%s',
@@ -32,7 +52,7 @@ class ImportExportController extends Controller
             $format
         );
 
-        $export = new TestCasesExport($folderId);
+        $export = new TestCasesExport($user, $folderId);
 
         $writerType = match ($format) {
             'csv' => ExcelFormat::CSV,
