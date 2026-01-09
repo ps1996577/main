@@ -15,6 +15,7 @@ class PlaywrightRun extends Model
 
     protected $fillable = [
         'id',
+        'external_id',
         'created_by',
         'source',
         'run_name',

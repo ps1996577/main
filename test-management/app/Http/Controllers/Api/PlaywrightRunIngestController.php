@@ -30,8 +30,14 @@ class PlaywrightRunIngestController extends Controller
 
         $summary = PlaywrightJsonParser::summarize($report);
 
-        $run = PlaywrightRun::create([
-            'id' => (string) Str::uuid(),
+        $externalId = null;
+        if (isset($meta['runId']) && is_string($meta['runId']) && $meta['runId'] !== '') {
+            $externalId = $meta['runId'];
+        } elseif (isset($payload['runId']) && is_string($payload['runId']) && $payload['runId'] !== '') {
+            $externalId = $payload['runId'];
+        }
+
+        $data = [
             'created_by' => null,
             'source' => 'api',
             'run_name' => isset($meta['runName']) && is_string($meta['runName']) ? $meta['runName'] : null,
@@ -47,10 +53,23 @@ class PlaywrightRunIngestController extends Controller
             'skipped' => $summary['skipped'],
             'flaky' => $summary['flaky'],
             'report' => $report,
-        ]);
+        ];
+
+        if ($externalId) {
+            $run = PlaywrightRun::query()->firstOrNew(['external_id' => $externalId]);
+            if (! $run->exists) {
+                $run->id = (string) Str::uuid();
+                $run->external_id = $externalId;
+            }
+            $run->fill($data);
+            $run->save();
+        } else {
+            $run = PlaywrightRun::create(['id' => (string) Str::uuid()] + $data);
+        }
 
         return response()->json([
             'id' => $run->id,
+            'externalId' => $run->external_id,
             'status' => $run->status,
             'total' => $run->total,
             'passed' => $run->passed,

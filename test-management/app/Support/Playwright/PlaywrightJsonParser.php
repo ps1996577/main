@@ -55,7 +55,16 @@ class PlaywrightJsonParser
 
     /**
      * @param array<string,mixed> $report
-     * @return array<int,array{title:string,location:?string,status:string,project:?string,durationMs:int}>
+     * @return array<int,array{
+     *   title:string,
+     *   location:?string,
+     *   file:?string,
+     *   status:string,
+     *   project:?string,
+     *   durationMs:int,
+     *   attempts:int,
+     *   errors:array<int,string>
+     * }>
      */
     public static function flattenTests(array $report): array
     {
@@ -76,7 +85,16 @@ class PlaywrightJsonParser
     /**
      * @param mixed $suite
      * @param string $prefix
-     * @param array<int,array{title:string,location:?string,status:string,project:?string,durationMs:int}> $out
+     * @param array<int,array{
+     *   title:string,
+     *   location:?string,
+     *   file:?string,
+     *   status:string,
+     *   project:?string,
+     *   durationMs:int,
+     *   attempts:int,
+     *   errors:array<int,string>
+     * }> $out
      */
     private static function walkSuite(mixed $suite, string $prefix, array &$out): void
     {
@@ -101,6 +119,7 @@ class PlaywrightJsonParser
 
                 $durationMs = 0;
                 $resultStatuses = [];
+                $errors = [];
                 $results = $test['results'] ?? [];
                 if (is_array($results)) {
                     foreach ($results as $r) {
@@ -113,15 +132,26 @@ class PlaywrightJsonParser
                         if (isset($r['status']) && is_string($r['status'])) {
                             $resultStatuses[] = $r['status'];
                         }
+                        if (isset($r['error']) && is_array($r['error'])) {
+                            $msg = $r['error']['message'] ?? null;
+                            $stack = $r['error']['stack'] ?? null;
+                            if (is_string($msg) && $msg !== '') {
+                                $errors[] = $msg;
+                            } elseif (is_string($stack) && $stack !== '') {
+                                $errors[] = $stack;
+                            }
+                        }
                     }
                 }
 
                 $status = self::normalizeStatus($resultStatuses);
                 $location = null;
+                $fileOnly = null;
                 if (isset($test['location']) && is_array($test['location'])) {
                     $file = isset($test['location']['file']) && is_string($test['location']['file']) ? $test['location']['file'] : null;
                     $line = isset($test['location']['line']) && is_numeric($test['location']['line']) ? (int) $test['location']['line'] : null;
                     if ($file) {
+                        $fileOnly = $file;
                         $location = $line ? "{$file}:{$line}" : $file;
                     }
                 }
@@ -129,9 +159,12 @@ class PlaywrightJsonParser
                 $out[] = [
                     'title' => $fullTitle,
                     'location' => $location,
+                    'file' => $fileOnly,
                     'status' => $status,
                     'project' => $project,
                     'durationMs' => $durationMs,
+                    'attempts' => is_array($results) ? count($results) : 0,
+                    'errors' => array_values(array_unique(array_filter($errors))),
                 ];
             }
         }

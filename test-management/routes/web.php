@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('playwright-reports/upload', [AdminPlaywrightReportController::class, 'create'])->name('playwright-reports.create');
         Route::post('playwright-reports', [AdminPlaywrightReportController::class, 'store'])->name('playwright-reports.store');
         Route::get('playwright-reports/{playwrightRun}', [AdminPlaywrightReportController::class, 'show'])->name('playwright-reports.show');
+        Route::get('playwright-reports/{playwrightRun}/download', [AdminPlaywrightReportController::class, 'download'])->name('playwright-reports.download');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

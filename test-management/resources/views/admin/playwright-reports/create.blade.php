@@ -12,6 +12,15 @@
                     @csrf
 
                     <div>
+                        <x-input-label for="external_id" value="Run ID (opcjonalnie, do nadpisywania tego samego runu)" />
+                        <x-text-input id="external_id" name="external_id" type="text" class="mt-1 block w-full" :value="old('external_id')" />
+                        <p class="mt-2 text-xs text-gray-500">
+                            Jeśli podasz ten sam Run ID ponownie, raport zostanie zaktualizowany (podobnie jak w SorryCypress).
+                        </p>
+                        <x-input-error :messages="$errors->get('external_id')" class="mt-2" />
+                    </div>
+
+                    <div>
                         <x-input-label for="run_name" value="Nazwa runu (opcjonalnie)" />
                         <x-text-input id="run_name" name="run_name" type="text" class="mt-1 block w-full" :value="old('run_name')" />
                         <x-input-error :messages="$errors->get('run_name')" class="mt-2" />
