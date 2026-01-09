@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CustomFieldController as AdminCustomFieldController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\PlaywrightReportController as AdminPlaywrightReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\ImportExportController;
@@ -25,6 +26,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->as('admin.')->middleware('admin')->group(function () {
         Route::resource('users', AdminUserController::class)->except('show');
         Route::resource('custom-fields', AdminCustomFieldController::class)->except('show');
+
+        Route::get('playwright-reports', [AdminPlaywrightReportController::class, 'index'])->name('playwright-reports.index');
+        Route::get('playwright-reports/upload', [AdminPlaywrightReportController::class, 'create'])->name('playwright-reports.create');
+        Route::post('playwright-reports', [AdminPlaywrightReportController::class, 'store'])->name('playwright-reports.store');
+        Route::get('playwright-reports/{playwrightRun}', [AdminPlaywrightReportController::class, 'show'])->name('playwright-reports.show');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

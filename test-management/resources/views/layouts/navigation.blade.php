@@ -31,8 +31,8 @@
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                             {{ __('Użytkownicy') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('admin.custom-fields.index')" :active="request()->routeIs('admin.custom-fields.*')">
-                            {{ __('Pola dodatkowe') }}
+                        <x-nav-link :href="route('admin.playwright-reports.index')" :active="request()->routeIs('admin.playwright-reports.*')">
+                            {{ __('Playwright raport') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -106,8 +106,8 @@
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     {{ __('Użytkownicy') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.custom-fields.index')" :active="request()->routeIs('admin.custom-fields.*')">
-                    {{ __('Pola dodatkowe') }}
+                <x-responsive-nav-link :href="route('admin.playwright-reports.index')" :active="request()->routeIs('admin.playwright-reports.*')">
+                    {{ __('Playwright raport') }}
                 </x-responsive-nav-link>
             @endif
         </div>

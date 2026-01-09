@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'playwright' => [
+        'api_token' => env('PLAYWRIGHT_REPORT_API_TOKEN'),
+    ],
+
 ];
