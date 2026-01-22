@@ -17,7 +17,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             <div class="bg-white shadow rounded-xl p-6">
                 <form method="GET" class="grid gap-4 md:grid-cols-4">
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2" data-testid="search-bar">
                         <x-input-label for="search" value="Szukaj" />
                         <x-text-input id="search" name="search" type="text" class="mt-1 block w-full"
                                       :value="request('search')" placeholder="ID, tytuł, oczekiwany rezultat..." />
